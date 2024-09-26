@@ -2,74 +2,103 @@ import React, { useState } from 'react';
 import './App.css';
 
 function App() {
-  const [num1, setNum1] = useState('');    // First number input
-  const [num2, setNum2] = useState('');    // Second number input
-  const [result, setResult] = useState(''); // Result to display
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    age: '',
+  });
 
-  // Function to handle mathematical operations
-  const handleOperation = (operator) => {
-    const number1 = parseFloat(num1);
-    const number2 = parseFloat(num2);
+  const [errors, setErrors] = useState({});
+  const [submitted, setSubmitted] = useState(false);
 
-    if (isNaN(number1) || isNaN(number2)) {
-      setResult('Please enter valid numbers');
-      return;
-    }
-
-    let res;
-    switch (operator) {
-      case '+':
-        res = number1 + number2;
-        break;
-      case '-':
-        res = number1 - number2;
-        break;
-      case '*':
-        res = number1 * number2;
-        break;
-      case '/':
-        res = number2 !== 0 ? number1 / number2 : 'Cannot divide by zero';
-        break;
-      default:
-        res = '';
-    }
-    setResult(res.toString());
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+    setErrors({
+      ...errors,
+      [e.target.name]: '',
+    });
+    setSubmitted(false); // Reset the success message on new input
   };
 
-  // Clear the input fields and result
-  const clearFields = () => {
-    setNum1('');
-    setNum2('');
-    setResult('');
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    let validationErrors = {};
+
+    if (!formData.name) {
+      validationErrors.name = 'Name is required';
+    }
+
+    if (!formData.email) {
+      validationErrors.email = 'Email is required';
+    } else if (!validateEmail(formData.email)) {
+      validationErrors.email = 'Invalid email format';
+    }
+
+    if (!formData.age) {
+      validationErrors.age = 'Age is required';
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+    } else {
+      setSubmitted(true);
+      setErrors({});
+      // Perform form submission tasks like sending data to server
+    }
   };
 
   return (
     <div className="App">
-      <h1>React Calculator</h1>
-      <div>
-        <input
-          type="text"
-          placeholder="Enter first number"
-          value={num1}
-          onChange={(e) => setNum1(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Enter second number"
-          value={num2}
-          onChange={(e) => setNum2(e.target.value)}
-        />
-      </div>
-      <div className="buttons">
-        <button onClick={() => handleOperation('+')}>+</button>
-        <button onClick={() => handleOperation('-')}>-</button>
-        <button onClick={() => handleOperation('*')}>*</button>
-        <button onClick={() => handleOperation('/')}>/</button>
-      </div>
-      <button onClick={clearFields}>Clear</button>
-      <div className="result">
-        <h2>Result: {result}</h2>
-      </div>
+      <h1>User Data Form</h1>
+      <form onSubmit={handleSubmit}>
+        <div className={`form-group ${errors.name ? 'error' : ''}`}>
+          <label>Name:</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Enter your name"
+          />
+          {errors.name && <span className="error-message">{errors.name}</span>}
+        </div>
+
+        <div className={`form-group ${errors.email ? 'error' : ''}`}>
+          <label>Email:</label>
+          <input
+            type="text"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="Enter your email"
+          />
+          {errors.email && <span className="error-message">{errors.email}</span>}
+        </div>
+
+        <div className={`form-group ${errors.age ? 'error' : ''}`}>
+          <label>Age:</label>
+          <input
+            type="number"
+            name="age"
+            value={formData.age}
+            onChange={handleChange}
+            placeholder="Enter your age"
+          />
+          {errors.age && <span className="error-message">{errors.age}</span>}
+        </div>
+
+        <button type="submit">Submit</button>
+      </form>
+
+      {submitted && <div className="success-message">Form submitted successfully!</div>}
     </div>
   );
 }
